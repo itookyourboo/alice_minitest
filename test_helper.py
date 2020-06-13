@@ -4,7 +4,11 @@ from sqlite3 import connect
 from random import choice
 
 
-db = connect('database.db')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+JSON_PATH = os.path.join(BASE_DIR, 'tests.json')
+DB_PATH = os.path.join(BASE_DIR, 'database.db')
+
+db = connect(DB_PATH)
 cursor = db.cursor()
 cursor.execute('create table if not exists likes('
                'id integer primary key autoincrement,'
@@ -55,7 +59,7 @@ class Test:
         return hash(f'{self.id}_{self.name}')
 
 
-with open('tests.json', 'r', encoding='utf8') as file:
+with open(JSON_PATH, 'r', encoding='utf8') as file:
     data = loads(file.read())
     tests = list(map(lambda x: Test(x), data))
 
