@@ -55,6 +55,9 @@ class Test:
     def to_json(self):
         return self.json_data
 
+    def __str__(self):
+        return f'{self.name}\n{self.description}'
+
     def __hash__(self):
         return hash(f'{self.id}_{self.name}')
 
@@ -62,18 +65,31 @@ class Test:
 with open(JSON_PATH, 'r', encoding='utf8') as file:
     data = loads(file.read())
     tests = list(map(lambda x: Test(x), data))
+    top = sorted(tests, key=lambda x: x.get_likes(), reverse=True)
+    new = tests[::-1]
+    COUNT = len(tests)
 
 
 def get_random_test():
     return choice(tests)
 
 
+# Returns True, if it cycles
+def get_top_test(idx):
+    return idx >= COUNT, top[idx % COUNT]
+
+
+# Analogically
+def get_new_test(idx):
+    return idx >= COUNT, new[idx % COUNT]
+
+
 def get_top(n):
-    n = min(len(tests),  n)
+    n = min(COUNT,  n)
     return sorted(tests, key=lambda x: x.get_likes(), reverse=True)[:n]
 
 
 def get_new(n):
-    n = min(len(tests), n)
+    n = min(COUNT, n)
     return tests[-n:][::-1]
 
