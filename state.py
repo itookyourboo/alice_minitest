@@ -6,7 +6,7 @@ class State(Enum):
     CHOOSE_TOP = 1
     CHOOSE_NEW = 2
     CHOOSE_RND = 3
-    SEARCH = 4
+    NAME = 4
 
 
 State.ALL = tuple(State)
