@@ -62,10 +62,10 @@ def next_test(req, res, session):
 @default_buttons
 def enter_the_name(req, res, session):
     res.text = txt(TEXT_ENTER_THE_NAME)
-    session['state'] = State.NAME
+    session['state'] = State.PASS_TEST
 
 
-@handler.undefined_command(states=State.NAME)
+@handler.undefined_command(states=State.PASS_TEST)
 @default_buttons
 def check_name(req, res, session):
     contains_name = False
@@ -82,11 +82,36 @@ def check_name(req, res, session):
     start_test(req, res, session)
 
 
-@handler.command(words=tkn(WORDS_EXIT), states=State.CHOOSE + (State.NAME, ))
+@handler.command(words=tkn(WORDS_LIKE), states=State.PASS_TEST)
+@default_buttons
+def like(req, res, session):
+    test = session['test']
+    if test.liked(req.user_id):
+        # TODO: HARD-CODE!!!
+        res.text = 'Вы уже лайкали этот тест! Введите имя или скажите "Назад".'
+    else:
+        test.like(req.user_id)
+        # TODO: HARD-CODE!!!
+        res.text = 'Спасибо! Введите имя или скажите "Назад".'
+
+
+@handler.command(words=tkn(WORDS_EXIT), states=State.CHOOSE + (State.PASS_TEST,))
 @default_buttons
 def back(req, res, session):
     session['state'] = State.MENU
     res.text = txt(TEXT_BACK)
+
+
+@handler.command(words=tkn(WORDS_HELP), states=State.ALL)
+@default_buttons
+def help_(req, res, session):
+    res.text = txt(TEXT_HELP[session['state']])
+
+
+@handler.command(words=tkn(WORDS_ABILITY), states=State.ALL)
+@default_buttons
+def ability_(req, res, session):
+    res.text = txt(TEXT_ABILITY)
 
 
 @handler.command(words=tkn(WORDS_EXIT), states=State.MENU)
@@ -131,7 +156,10 @@ def show_test_base(res, session, test, intro=False, cycled=False):
 def start_test(req, res, session):
     test = session['test']
     name = session['name']
-    res.text = f'{name}\n{test.name}\n{test.intrigue}\n{test.result}'
+    res.text = f'{name}\n{test.name}\n{test.intrigue}\n{test.result}\n{txt(TEXT_END_TEST)}'
+    if not test.liked(req.user_id):
+        # TODO: HARD-CODE!!!
+        res.buttons = [button('Лайк')]
 
 
 class MinitestSkill(BaseSkill):
