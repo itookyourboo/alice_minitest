@@ -16,6 +16,8 @@ TEXT_NO_NAME = 'Извините, я не рассылашала ваше имя
 TEXT_END_TEST = 'Если хотите пройти заново, назовите имя. Или скажите "Назад".'
 TEXT_START = 'Стартуем!/Поехали!/Начинаем!'
 TEXT_WANNA_LIKE = 'Если вам понравился тест, скажите "Лайк"!'
+TEXT_ALREADY_LIKED = 'Вы уже лайкали этот тест! Введите имя или скажите "Назад".'
+TEXT_HAVE_LIKED = 'Спасибо! Введите имя или скажите "Назад".'
 
 TEXT_HELP = {
     State.MENU: 'Чтобы найти тест, выберите категорию "Новое", "Популярное" или "Случайное".\n'
@@ -51,12 +53,25 @@ WORDS_REPEAT = 'ещё/еще/повтори/повтори-ка/повтор/п
 WORDS_EXIT = 'выход/хватит/пока/свидания/стоп/выйти/выключи/останови/остановить/отмена/закончить/' \
              'закончи/отстань/назад/обратно/верни/вернись'
 
+SOUND_HARP = '<speaker audio="alice-music-harp-1.opus">'
+SOUND_DRUM_1 = '<speaker audio="alice-music-drums-1.opus">'
+SOUND_DRUM_2 = '<speaker audio="alice-music-drums-2.opus">'
+SOUND_GONG = '<speaker audio="alice-music-gong-1.opus">'
+SOUND_DRUM_LOOP_1 = '<speaker audio="alice-music-drum-loop-1.opus">'
+
+SOUNDS_INTRIGUE = (SOUND_HARP, SOUND_DRUM_1, SOUND_DRUM_2, SOUND_GONG, SOUND_DRUM_LOOP_1)
+
+
 BUTTONS = {
     State.MENU: ('Новое', 'Популярное', 'Случайное', 'Помощь', 'Что ты умеешь?'),
-    State.PASS_TEST: ('Александр/Андрей/Илья/Егор/Даниил/Роман/Олег',
+    State.PASS_TEST: ('Александр/Андрей/Илья/Егор/Даниил/Олег',
                       'Анжела/Настя/Яна/Оля/Лена/Вера/Алина/Аня',
                       'Назад')
 }
+
+BUTTON_LIKE = 'Лайк'
+
+
 for choose in State.CHOOSE:
     BUTTONS[choose] = ('Пройти', 'Дальше/Ещё/Далее', 'Назад', 'Повтори')
 
@@ -73,3 +88,8 @@ def btn(string):
     if isinstance(string, tuple):
         return list(map(lambda x: txt(x), string))
     return txt(string),
+
+
+def snd(sounds):
+    return choice(sounds)
+
