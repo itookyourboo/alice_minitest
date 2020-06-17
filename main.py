@@ -87,12 +87,10 @@ def check_name(req, res, session):
 def like(req, res, session):
     test = session['test']
     if test.liked(req.user_id):
-        # TODO: HARD-CODE!!!
-        res.text = 'Вы уже лайкали этот тест! Введите имя или скажите "Назад".'
+        res.text = txt(TEXT_ALREADY_LIKED)
     else:
         test.like(req.user_id)
-        # TODO: HARD-CODE!!!
-        res.text = 'Спасибо! Введите имя или скажите "Назад".'
+        res.text = txt(TEXT_HAVE_LIKED)
 
 
 @handler.command(words=tkn(WORDS_EXIT), states=State.CHOOSE + (State.PASS_TEST,))
@@ -153,13 +151,18 @@ def show_test_base(res, session, test, intro=False, cycled=False):
     session['test'] = test
 
 
+PAUSE = 'sil <[250]>'
+
+
 def start_test(req, res, session):
     test = session['test']
     name = session['name']
-    res.text = f'{name}\n{test.name}\n{test.intrigue}\n{test.result}\n{txt(TEXT_END_TEST)}'
+    intrigue, result = test.intrigue, test.result
+    res.text = f'{name}\n{test.name}\n{intrigue}\n{result}\n{txt(TEXT_END_TEST)}'
+    res.tts = f'{name} {PAUSE}\n{test.name} {PAUSE}\n{intrigue}\n' \
+              f'{snd(SOUNDS_INTRIGUE)}\n{result} {PAUSE}\n{txt(TEXT_END_TEST)}'
     if not test.liked(req.user_id):
-        # TODO: HARD-CODE!!!
-        res.buttons = [button('Лайк')]
+        res.buttons = [button(BUTTON_LIKE)]
 
 
 class MinitestSkill(BaseSkill):
