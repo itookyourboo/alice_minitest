@@ -2,21 +2,10 @@ from base_skill.skill import *
 from .strings import *
 from .state import State
 from .test_helper import get_new_test, get_top_test, get_random_test, COUNT
+from .ui_helper import default_buttons
 
 
 handler = CommandHandler()
-
-
-def default_buttons(func):
-    def wrapper(req, res, session):
-        func(req, res, session)
-        if len(res.buttons) == 0:
-            res.buttons = [button(x) for x in btn(BUTTONS[session['state']])]
-        else:
-            for x in btn(BUTTONS[session['state']]):
-                res.buttons.append(button(x))
-
-    return wrapper
 
 
 @handler.hello_command
