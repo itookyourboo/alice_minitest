@@ -1,7 +1,9 @@
 import os
+from difflib import SequenceMatcher as sequence
 from json import loads
 from sqlite3 import connect
 from random import choice
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 JSON_PATH = os.path.join(BASE_DIR, 'tests.json')
@@ -95,3 +97,41 @@ def get_top(n):
 def get_new(n):
     n = min(COUNT, n)
     return tests[-n:][::-1]
+
+
+def add_wtf(text):
+    with open(os.path.join(BASE_DIR, 'wtf.txt'), 'a', encoding='utf8') as file:
+        file.write(text + '\n')
+
+
+def get_diff(text1, text2):
+    return
+
+
+def try_to_find_test(text):
+    text = text.lower()
+    mx = 0.5
+    result = None
+    for test in tests:
+        mx_diff = max(map(lambda x: sequence(None, text, x).ratio(),
+                          [test.name.lower(), test.description.lower()]))
+        if mx_diff > mx:
+            result = test
+            mx = mx_diff
+
+    return result
+
+
+def morph_words(num):
+    if 10 <= num % 100 <= 20:
+        return 'тестов'
+
+    elif (num % 10) in (0, 5, 6, 7, 8, 9):
+        return 'тестов'
+
+    elif num % 10 == 1:
+        return 'тест'
+    elif (num % 10) in (2, 3, 4):
+        return 'теста'
+
+print(max(map(lambda x: x**2, [1, 2, 3])))
