@@ -5,6 +5,9 @@ from base_skill.skill import button, BigImageCard
 from .strings import btn, BUTTONS
 
 
+IMAGES = {}
+
+
 uni_images = (
     '1652229/d198ef1eb3711123dec9',
     '213044/45c4186ffe6e4082104e',
@@ -25,6 +28,10 @@ def get_card(title, description, image_id=None):
     card.description = description
     card.image_id = image_id if image_id else get_random_image()
     return card
+
+
+def get_image_id(test_id, result_index):
+    return IMAGES.get([test_id, result_index], get_random_image())
 
 
 def default_buttons(func):
