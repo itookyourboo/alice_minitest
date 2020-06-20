@@ -1,15 +1,17 @@
+import logging
+
 from base_skill.skill import *
 from .strings import *
 from .state import State
 from .test_helper import get_new_test, get_top_test, get_random_test, add_wtf, try_to_find_test, morph_words
-from .ui_helper import default_buttons, save_last_text, normalize_tts
+from .ui_helper import default_buttons, save_res, normalize_tts, get_card
 
 
 handler = CommandHandler()
 
 
 @handler.hello_command
-@save_last_text
+@save_res
 @normalize_tts
 @default_buttons
 def hello(req, res, session):
@@ -18,7 +20,7 @@ def hello(req, res, session):
 
 
 @handler.undefined_command(states=State.MENU)
-@save_last_text
+@save_res
 @default_buttons
 def find_test(req, res, session):
     test = try_to_find_test(req.text)
@@ -31,7 +33,7 @@ def find_test(req, res, session):
 
 
 @handler.command(words=tkn(WORDS_NEW), states=State.TEST_CALL)
-@save_last_text
+@save_res
 @default_buttons
 def test_new(req, res, session):
     show_new_test(req, res, session, intro=True)
@@ -39,7 +41,7 @@ def test_new(req, res, session):
 
 
 @handler.command(words=tkn(WORDS_TOP), states=State.TEST_CALL)
-@save_last_text
+@save_res
 @default_buttons
 def test_top(req, res, session):
     show_top_test(req, res, session, intro=True)
@@ -47,15 +49,15 @@ def test_top(req, res, session):
 
 
 @handler.command(words=tkn(WORDS_RND), states=State.TEST_CALL)
-@save_last_text
+@save_res
 @default_buttons
 def test_rnd(req, res, session):
     show_rnd_test(req, res, session, intro=True)
     session['state'] = State.CHOOSE_RND
 
 
-@handler.command(words=tkn(WORDS_NEXT), states=State.CHOOSE)
-@save_last_text
+@handler.command(words=tkn(WORDS_NEXT), states=State.CHOOSE + (State.PASS_TEST,))
+@save_res
 @default_buttons
 def next_test(req, res, session):
     args = req, res, session, False
@@ -63,12 +65,13 @@ def next_test(req, res, session):
         State.CHOOSE_NEW: show_new_test,
         State.CHOOSE_TOP: show_top_test,
         State.CHOOSE_RND: show_rnd_test,
-        State.CHOOSE_FOUND: exit_found_test
+        State.CHOOSE_FOUND: exit_found_test,
+        State.PASS_TEST: show_rnd_test
     }[session['state']](*args)
 
 
 @handler.command(words=tkn(WORDS_PASS), states=State.CHOOSE)
-@save_last_text
+@save_res
 @default_buttons
 def enter_the_name(req, res, session):
     res.text = txt(TEXT_ENTER_THE_NAME)
@@ -76,7 +79,7 @@ def enter_the_name(req, res, session):
 
 
 @handler.undefined_command(states=State.PASS_TEST)
-@save_last_text
+@save_res
 @default_buttons
 def check_name(req, res, session):
     contains_name = False
@@ -93,7 +96,7 @@ def check_name(req, res, session):
 
 
 @handler.command(words=tkn(WORDS_LIKE), states=State.PASS_TEST)
-@save_last_text
+@save_res
 @default_buttons
 def like(req, res, session):
     test = session['test']
@@ -105,7 +108,7 @@ def like(req, res, session):
 
 
 @handler.command(words=tkn(WORDS_EXIT), states=State.CHOOSE + (State.PASS_TEST,))
-@save_last_text
+@save_res
 @default_buttons
 def back(req, res, session):
     session['state'] = State.MENU
@@ -113,14 +116,14 @@ def back(req, res, session):
 
 
 @handler.command(words=tkn(WORDS_HELP), states=State.ALL)
-@save_last_text
+@save_res
 @default_buttons
 def help_(req, res, session):
     res.text = txt(TEXT_HELP[session['state']])
 
 
 @handler.command(words=tkn(WORDS_ABILITY), states=State.ALL)
-@save_last_text
+@save_res
 @default_buttons
 def ability_(req, res, session):
     res.text = txt(TEXT_ABILITY)
@@ -134,14 +137,16 @@ def leave_skill(req, res, session):
 
 
 @handler.command(words=tkn(WORDS_REPEAT), states=State.ALL)
-@save_last_text
+@save_res
 @default_buttons
 def repeat(req, res, session):
-    res.text = session['last_text']
+    res.text = session.get('last_text', txt(TEXT_NE_PONEL))
+    res.tts = session.get('last_tts', res.text)
+    res.card = session.get('last_card')
 
 
 @handler.undefined_command(states=State.ALL)
-@save_last_text
+@save_res
 @normalize_tts
 @default_buttons
 def ne_ponel(req, res, session):
@@ -162,6 +167,7 @@ def show_top_test(req, res, session, intro=False):
 
 
 def show_rnd_test(req, res, session, intro=False):
+    session['state'] = State.CHOOSE_RND
     test = get_random_test()
     show_test_base(res, session, test, intro=intro)
 
@@ -190,6 +196,7 @@ def start_test(req, res, session):
     res.text = f'{name}\n{test.name}\n{intrigue}\n{result}\n{txt(TEXT_END_TEST)}'
     res.tts = f'{name} {PAUSE}\n{test.name} {PAUSE}\n{intrigue}\n' \
               f'{snd(SOUNDS_INTRIGUE)}\n{result} {PAUSE}\n{txt(TEXT_END_TEST)}'
+    res.card = get_card(test.name, result)
     if not test.liked(req.user_id):
         res.buttons = [button(BUTTON_LIKE)]
 
@@ -197,3 +204,9 @@ def start_test(req, res, session):
 class MinitestSkill(BaseSkill):
     name = 'minitest_skill'
     command_handler = handler
+
+    def log(self, req, res, session):
+        logging.info(f'USR: {req.user_id[:5]}\n'
+                     f'REQ: {req.text}\n'
+                     f'RES: {res.text}\n'
+                     f'------------------')
