@@ -4,7 +4,7 @@ from base_skill.skill import *
 from .strings import *
 from .state import State
 from .test_helper import get_new_test, get_top_test, get_random_test, add_wtf, try_to_find_test, morph_words
-from .ui_helper import default_buttons, save_res, normalize_tts, get_card
+from .ui_helper import default_buttons, save_res, normalize_tts, get_card, get_image_id
 
 
 handler = CommandHandler()
@@ -80,6 +80,7 @@ def enter_the_name(req, res, session):
 
 @handler.undefined_command(states=State.PASS_TEST)
 @save_res
+@normalize_tts
 @default_buttons
 def check_name(req, res, session):
     contains_name = False
@@ -196,7 +197,8 @@ def start_test(req, res, session):
     res.text = f'{name}\n{test.name}\n{intrigue}\n{result}\n{txt(TEXT_END_TEST)}'
     res.tts = f'{name} {PAUSE}\n{test.name} {PAUSE}\n{intrigue}\n' \
               f'{snd(SOUNDS_INTRIGUE)}\n{result} {PAUSE}\n{txt(TEXT_END_TEST)}'
-    res.card = get_card(test.name, result)
+    res.card = get_card(test.name, result,
+                        image_id=get_image_id(test.id, test.results.index(result)))
     if not test.liked(req.user_id):
         res.buttons = [button(BUTTON_LIKE)]
 

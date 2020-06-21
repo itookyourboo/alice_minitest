@@ -46,6 +46,10 @@ class Test:
     def result(self):
         return choice(self.json_data['result'])
 
+    @property
+    def results(self):
+        return self.json_data['result']
+
     def like(self, user_id):
         cursor.execute('insert into likes(user_id, test_id) values(?, ?)', (user_id, self.id))
         db.commit()
