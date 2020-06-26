@@ -4,7 +4,6 @@ from random import choice
 from base_skill.skill import button, BigImageCard
 from .strings import btn, BUTTONS
 
-
 uni_images = (
     '1540737/419a8f88c59d0e72fa41',
     '1540737/d7aa47c0cf2ba485cf53',
@@ -14,9 +13,22 @@ uni_images = (
     '213044/45c4186ffe6e4082104e'
 )
 
+SOUNDS = {
+    'harp': '<speaker audio="alice-music-harp-1.opus">',
+    'drum_1': '<speaker audio="alice-music-drums-1.opus">',
+    'drum_2': '<speaker audio="alice-music-drums-2.opus">',
+    'gong': '<speaker audio="alice-music-gong-1.opus">',
+    'drum_loop_1': '<speaker audio="alice-music-drum-loop-1.opus">'
+}
+sounds = list(SOUNDS.values())
+
 
 def get_random_image():
     return choice(uni_images)
+
+
+def get_random_sound():
+    return choice(sounds)
 
 
 def get_card(title, description, image_id=None):
@@ -61,7 +73,7 @@ def save_res(func):
 def normalize_tts(func):
     def wrapper(req, res, session):
         func(req, res, session)
-        res.tts = res.text.replace('тест', 'т+эст').replace('Гааааааляяяяяяяяя', 'Га а а аля')
+        res.tts = res.tts.replace('тест', 'т+эст').replace('Гааааааляяяяяяяяя', 'Га а а аля')
 
     return wrapper
 
@@ -96,7 +108,19 @@ IMAGES = {(0, 1): '1540737/d027c1e7161bb26c044c', (0, 2): '1652229/29b84e9d0f4f2
           (1, 8): '937455/0534dcefb9303da5c210', (20, 1): '937455/29bd13684179c03ba718',
           (20, 2): '213044/19f6899e5bce5e72beb0', (20, 3): '937455/6755ba1f6f5620d2ef30',
           (20, 4): '1540737/8ab2c3bc4e615df58459', (20, 5): '213044/842ec3de82f6d911bac9',
-          (20, 6): '937455/166afd997eb84b7767d7', (2, 1): '937455/2e89bcea8f80f5264cfe',
+          (20, 6): '937455/166afd997eb84b7767d7', ('21', '1'): '965417/48ccca1a9fb84ccdc06f',
+          (21, 1): '965417/48ccca1a9fb84ccdc06f', (21, 2): '965417/92f4d414217b4cab9168',
+          (21, 3): '965417/96281a065afd831ee459', (21, 4): '1540737/634010bc4f7b12523b05',
+          (21, 5): '1652229/02c88c361234c223ba18', (22, 1): '1030494/f99f17f38c1f034c533f',
+          (22, 2): '1030494/dc96daca034a093a4f4a', (22, 3): '1030494/34c4b22276d2a39be665',
+          (22, 4): '1030494/180947f6f003805317e6', (23, 1): '1652229/bd76f4ef33582c0b7acd',
+          (23, 2): '1540737/85b7897ab044a0c1847e', (23, 3): '1652229/7903800328d8e8d93d0a',
+          (23, 4): '213044/ccb0d185281565c70147', (24, 1): '213044/a08be33c2882c66640ce',
+          (24, 2): '213044/1282cea811f80b41c193', (24, 3): '1540737/4970f781f3841a28525b',
+          (24, 4): '213044/c74bb55b120f41177a1e', (24, 5): '1030494/abd9305f94121d607400',
+          (25, 1): '1030494/6a9441a4a5e41f8b30a2', (25, 2): '1030494/b3c5c51f423840a11179',
+          (25, 3): '1540737/7a990471940872c0bda2', (25, 4): '1540737/fa4f50b03c4b1afccede',
+          (25, 5): '1540737/f8035a85ed565b71fd2a', (2, 1): '937455/2e89bcea8f80f5264cfe',
           (2, 2): '937455/da5eef242fc5ba711b75', (2, 3): '1030494/484abdf85f61aa9a5ac2',
           (2, 4): '1030494/599b1b024d54b415fc52', (2, 5): '1030494/d042abe5e2429fc8ba8f',
           (2, 6): '1652229/5393dcb164f34860a116', (3, 1): '1652229/2590561977a2b783dcf2',
