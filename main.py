@@ -1,10 +1,10 @@
 import logging
 
-from base_skill.skill import *
-from .strings import *
+from base_skill.skill import CommandHandler, BaseSkill, button
+from .strings import TEXT, WORDS, BUTTONS, BUTTON_LIKE, txt, btn, HELP
 from .state import State
 from .test_helper import get_new_test, get_top_test, get_random_test, add_wtf, try_to_find_test, morph_words
-from .ui_helper import default_buttons, save_res, normalize_tts, get_card, get_image_id
+from .ui_helper import default_buttons, save_res, normalize_tts, get_card, get_image_id, get_random_sound
 
 
 handler = CommandHandler()
@@ -15,7 +15,8 @@ handler = CommandHandler()
 @normalize_tts
 @default_buttons
 def hello(req, res, session):
-    res.text = txt(TEXT_HELLO)
+    res.tts = f"{txt(TEXT['hello'])}\n{txt(TEXT['can_search'])}"
+    res.text = txt(TEXT['hello'])
     session['state'] = State.MENU
 
 
@@ -25,14 +26,14 @@ def hello(req, res, session):
 def find_test(req, res, session):
     test = try_to_find_test(req.text)
     if test:
-        res.text = txt(TEXT_FOUND_1).format(test.name, test.description)
+        res.text = txt(TEXT['found_1']).format(test.name, test.description)
         session['test'] = test
         session['state'] = State.CHOOSE_FOUND
     else:
-        res.text = txt(TEXT_NOT_FOUND)
+        res.text = txt(TEXT['not_found'])
 
 
-@handler.command(words=tkn(WORDS_NEW), states=State.TEST_CALL)
+@handler.command(words=WORDS['new'], states=State.TEST_CALL)
 @save_res
 @default_buttons
 def test_new(req, res, session):
@@ -40,7 +41,7 @@ def test_new(req, res, session):
     session['state'] = State.CHOOSE_NEW
 
 
-@handler.command(words=tkn(WORDS_TOP), states=State.TEST_CALL)
+@handler.command(words=WORDS['top'], states=State.TEST_CALL)
 @save_res
 @default_buttons
 def test_top(req, res, session):
@@ -48,7 +49,7 @@ def test_top(req, res, session):
     session['state'] = State.CHOOSE_TOP
 
 
-@handler.command(words=tkn(WORDS_RND), states=State.TEST_CALL)
+@handler.command(words=WORDS['rnd'], states=State.TEST_CALL)
 @save_res
 @default_buttons
 def test_rnd(req, res, session):
@@ -56,7 +57,7 @@ def test_rnd(req, res, session):
     session['state'] = State.CHOOSE_RND
 
 
-@handler.command(words=tkn(WORDS_NEXT), states=State.CHOOSE + (State.PASS_TEST,))
+@handler.command(words=WORDS['next'], states=State.CHOOSE + (State.PASS_TEST,))
 @save_res
 @default_buttons
 def next_test(req, res, session):
@@ -70,15 +71,15 @@ def next_test(req, res, session):
     }[session['state']](*args)
 
 
-@handler.command(words=tkn(WORDS_PASS), states=State.CHOOSE)
+@handler.command(words=WORDS['pass'], states=State.CHOOSE)
 @save_res
 @default_buttons
 def enter_the_name(req, res, session):
-    res.text = txt(TEXT_ENTER_THE_NAME)
+    res.text = txt(TEXT['enter_name'])
     session['state'] = State.PASS_TEST
 
 
-@handler.undefined_command(states=State.PASS_TEST)
+@handler.undefined_command(states=State.CHOOSE + (State.PASS_TEST,))
 @save_res
 @normalize_tts
 @default_buttons
@@ -90,58 +91,58 @@ def check_name(req, res, session):
             contains_name = True
             break
 
-    if contains_name or 'name' in session and any(x in req.tokens for x in tkn(WORDS_PASS)):
+    if contains_name or 'name' in session and any(x in req.tokens for x in WORDS['pass']):
         start_test(req, res, session)
     else:
-        res.text = txt(TEXT_NO_NAME)
+        res.text = txt(TEXT['no_name'])
 
 
-@handler.command(words=tkn(WORDS_LIKE), states=State.PASS_TEST)
+@handler.command(words=WORDS['like'], states=State.PASS_TEST)
 @save_res
 @default_buttons
 def like(req, res, session):
     test = session['test']
     if test.liked(req.user_id):
-        res.text = txt(TEXT_ALREADY_LIKED)
+        res.text = txt(TEXT['already_liked'])
     else:
         test.like(req.user_id)
-        res.text = txt(TEXT_HAVE_LIKED)
+        res.text = txt(TEXT['have_liked'])
 
 
-@handler.command(words=tkn(WORDS_EXIT), states=State.CHOOSE + (State.PASS_TEST,))
+@handler.command(words=WORDS['exit'], states=State.CHOOSE + (State.PASS_TEST,))
 @save_res
 @default_buttons
 def back(req, res, session):
     session['state'] = State.MENU
-    res.text = txt(TEXT_BACK)
+    res.text = txt(TEXT['back'])
 
 
-@handler.command(words=tkn(WORDS_HELP), states=State.ALL)
+@handler.command(words=WORDS['help'], states=State.ALL)
 @save_res
 @default_buttons
 def help_(req, res, session):
-    res.text = txt(TEXT_HELP[session['state']])
+    res.text = txt(HELP[session['state']])
 
 
-@handler.command(words=tkn(WORDS_ABILITY), states=State.ALL)
+@handler.command(words=WORDS['ability'], states=State.ALL)
 @save_res
 @default_buttons
 def ability_(req, res, session):
-    res.text = txt(TEXT_ABILITY)
+    res.text = txt(TEXT['ability'])
 
 
-@handler.command(words=tkn(WORDS_EXIT), states=State.MENU)
+@handler.command(words=WORDS['exit'], states=State.MENU)
 def leave_skill(req, res, session):
-    res.text = txt(TEXT_BYE)
+    res.text = txt(TEXT['bye'])
     res.end_session = True
     session.clear()
 
 
-@handler.command(words=tkn(WORDS_REPEAT), states=State.ALL)
+@handler.command(words=WORDS['repeat'], states=State.ALL)
 @save_res
 @default_buttons
 def repeat(req, res, session):
-    res.text = session.get('last_text', txt(TEXT_NE_PONEL))
+    res.text = session.get('last_text', txt(TEXT['ne_ponel']))
     res.tts = session.get('last_tts', res.text)
     res.card = session.get('last_card')
 
@@ -151,7 +152,7 @@ def repeat(req, res, session):
 @normalize_tts
 @default_buttons
 def ne_ponel(req, res, session):
-    res.text = txt(TEXT_NE_PONEL)
+    res.text = txt(TEXT['ne_ponel'])
     add_wtf(f'{session["state"]}: {req.text}')
 
 
@@ -175,15 +176,16 @@ def show_rnd_test(req, res, session, intro=False):
 
 def exit_found_test(req, res, session, intro=False):
     session['state'] = State.MENU
-    res.text = txt(TEXT_BACK)
+    res.text = txt(TEXT['back'])
 
 
 def show_test_base(res, session, test, intro=False, cycled=False):
-    intro_text = '' if not intro else txt(TEXT_INTRO)
+    intro_text = '' if not intro else txt(TEXT['intro'])
     if cycled:
-        intro_text += txt(TEXT_RESTARTED)
+        intro_text += txt(TEXT['restarted'])
 
-    res.text = f'{intro_text}{test}'
+    res.tts = f'{intro_text}{test}'
+    res.text = f'{test}'
     session['test'] = test
 
 
@@ -194,9 +196,17 @@ def start_test(req, res, session):
     test = session['test']
     name = session['name']
     intrigue, result = test.intrigue, test.result
-    res.text = f'{name}\n{test.name}\n{intrigue}\n{result}\n{txt(TEXT_END_TEST)}'
-    res.tts = f'{name} {PAUSE}\n{test.name} {PAUSE}\n{intrigue}\n' \
-              f'{snd(SOUNDS_INTRIGUE)}\n{result} {PAUSE}\n{txt(TEXT_END_TEST)}'
+    res.tts = f'{name} {PAUSE}\n' \
+              f'{test.name} {PAUSE}\n' \
+              f'{intrigue}\n' \
+              f'{get_random_sound()}\n' \
+              f'{result} {PAUSE}\n' \
+              f'{txt(TEXT["end_test"])}'
+    res.text = f'{name}\n' \
+               f'{test.name}\n' \
+               f'{intrigue}\n' \
+               f'{result}\n' \
+               f'{txt(TEXT["end_test"])}'
     res.card = get_card(test.name, result,
                         image_id=get_image_id(test.id, test.results.index(result)))
     if not test.liked(req.user_id):
