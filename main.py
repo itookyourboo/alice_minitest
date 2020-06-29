@@ -12,12 +12,12 @@ handler = CommandHandler()
 
 @handler.hello_command
 @save_res
-@normalize_tts
 @default_buttons
 def hello(req, res, session):
     res.tts = f"{txt(TEXT['hello'])}\n{txt(TEXT['can_search'])}"
     res.text = txt(TEXT['hello'])
     session['state'] = State.MENU
+    normalize_tts(res)
 
 
 @handler.undefined_command(states=State.MENU)
@@ -31,6 +31,7 @@ def find_test(req, res, session):
         session['state'] = State.CHOOSE_FOUND
     else:
         res.text = txt(TEXT['not_found'])
+    normalize_tts(res)
 
 
 @handler.command(words=WORDS['new'], states=State.TEST_CALL)
@@ -39,6 +40,7 @@ def find_test(req, res, session):
 def test_new(req, res, session):
     show_new_test(req, res, session, intro=True)
     session['state'] = State.CHOOSE_NEW
+    normalize_tts(res)
 
 
 @handler.command(words=WORDS['top'], states=State.TEST_CALL)
@@ -47,6 +49,7 @@ def test_new(req, res, session):
 def test_top(req, res, session):
     show_top_test(req, res, session, intro=True)
     session['state'] = State.CHOOSE_TOP
+    normalize_tts(res)
 
 
 @handler.command(words=WORDS['rnd'], states=State.TEST_CALL)
@@ -55,6 +58,7 @@ def test_top(req, res, session):
 def test_rnd(req, res, session):
     show_rnd_test(req, res, session, intro=True)
     session['state'] = State.CHOOSE_RND
+    normalize_tts(res)
 
 
 @handler.command(words=WORDS['next'], states=State.CHOOSE + (State.PASS_TEST,))
@@ -69,6 +73,7 @@ def next_test(req, res, session):
         State.CHOOSE_FOUND: exit_found_test,
         State.PASS_TEST: show_rnd_test
     }[session['state']](*args)
+    normalize_tts(res)
 
 
 @handler.command(words=WORDS['pass'], states=State.CHOOSE)
@@ -77,11 +82,11 @@ def next_test(req, res, session):
 def enter_the_name(req, res, session):
     res.text = txt(TEXT['enter_name'])
     session['state'] = State.PASS_TEST
+    normalize_tts(res)
 
 
 @handler.undefined_command(states=State.CHOOSE + (State.PASS_TEST,))
 @save_res
-@normalize_tts
 @default_buttons
 def check_name(req, res, session):
     contains_name = False
@@ -96,6 +101,8 @@ def check_name(req, res, session):
     else:
         res.text = txt(TEXT['no_name'])
 
+    normalize_tts(res)
+
 
 @handler.command(words=WORDS['like'], states=State.PASS_TEST)
 @save_res
@@ -107,6 +114,7 @@ def like(req, res, session):
     else:
         test.like(req.user_id)
         res.text = txt(TEXT['have_liked'])
+    normalize_tts(res)
 
 
 @handler.command(words=WORDS['exit'], states=State.CHOOSE + (State.PASS_TEST,))
@@ -115,13 +123,15 @@ def like(req, res, session):
 def back(req, res, session):
     session['state'] = State.MENU
     res.text = txt(TEXT['back'])
+    normalize_tts(res)
 
 
 @handler.command(words=WORDS['help'], states=State.ALL)
 @save_res
 @default_buttons
 def help_(req, res, session):
-    res.text = txt(HELP[session['state']])
+    res.text = HELP[session['state']]
+    normalize_tts(res)
 
 
 @handler.command(words=WORDS['ability'], states=State.ALL)
@@ -129,6 +139,7 @@ def help_(req, res, session):
 @default_buttons
 def ability_(req, res, session):
     res.text = txt(TEXT['ability'])
+    normalize_tts(res)
 
 
 @handler.command(words=WORDS['exit'], states=State.MENU)
@@ -145,15 +156,16 @@ def repeat(req, res, session):
     res.text = session.get('last_text', txt(TEXT['ne_ponel']))
     res.tts = session.get('last_tts', res.text)
     res.card = session.get('last_card')
+    normalize_tts(res)
 
 
 @handler.undefined_command(states=State.ALL)
 @save_res
-@normalize_tts
 @default_buttons
 def ne_ponel(req, res, session):
     res.text = txt(TEXT['ne_ponel'])
     add_wtf(f'{session["state"]}: {req.text}')
+    normalize_tts(res)
 
 
 def show_new_test(req, res, session, intro=False):
