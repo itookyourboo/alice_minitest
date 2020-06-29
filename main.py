@@ -1,9 +1,9 @@
 import logging
 
 from base_skill.skill import CommandHandler, BaseSkill, button
-from .strings import TEXT, WORDS, BUTTONS, BUTTON_LIKE, txt, btn, HELP
+from .strings import TEXT, WORDS, BUTTON_LIKE, BUTTON_NEXT_TEST, txt, HELP
 from .state import State
-from .test_helper import get_new_test, get_top_test, get_random_test, add_wtf, try_to_find_test, morph_words
+from .test_helper import get_new_test, get_top_test, get_random_test, add_wtf, try_to_find_test
 from .ui_helper import default_buttons, save_res, normalize_tts, get_card, get_image_id, get_random_sound
 
 
@@ -110,10 +110,12 @@ def check_name(req, res, session):
 def like(req, res, session):
     test = session['test']
     if test.liked(req.user_id):
-        res.text = txt(TEXT['already_liked'])
+        res.text = f"{txt(TEXT['already_liked'])}\n{txt(TEXT['end_test'])}"
     else:
         test.like(req.user_id)
-        res.text = txt(TEXT['have_liked'])
+        res.text = f"{txt(TEXT['thanks'])}\n{txt(TEXT['end_test'])}"
+
+    res.buttons = [button(BUTTON_NEXT_TEST)]
     normalize_tts(res)
 
 
@@ -196,7 +198,7 @@ def show_test_base(res, session, test, intro=False, cycled=False):
     if cycled:
         intro_text += txt(TEXT['restarted'])
 
-    res.tts = f'{intro_text}{test}'
+    res.tts = f'{test}{intro_text}'
     res.text = f'{test}'
     session['test'] = test
 
@@ -222,7 +224,9 @@ def start_test(req, res, session):
     res.card = get_card(test.name, result,
                         image_id=get_image_id(test.id, test.results.index(result)))
     if not test.liked(req.user_id):
-        res.buttons = [button(BUTTON_LIKE)]
+        res.buttons = [button(BUTTON_LIKE), button(BUTTON_NEXT_TEST)]
+    else:
+        res.buttons = [button(BUTTON_NEXT_TEST)]
 
 
 class MinitestSkill(BaseSkill):
