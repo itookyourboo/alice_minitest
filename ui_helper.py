@@ -71,7 +71,10 @@ def save_res(func):
 
 
 def normalize_tts(res):
-    res.tts = res.tts.replace('тест', 'т+эст').replace('Гааааааляяяяяяяяя', 'Га а а аля')
+    res.tts = res.tts\
+        .replace('тест', 'т+эст')\
+        .replace('Тест', 'Т+эст')\
+        .replace('Гааааааляяяяяяяяя', 'Га а а аля')
 
 
 IMAGES = {(0, 1): '1540737/d027c1e7161bb26c044c', (0, 2): '1652229/29b84e9d0f4f2705d2d1',
