@@ -151,4 +151,9 @@ def morph_words(num):
     elif (num % 10) in (2, 3, 4):
         return 'теста'
 
-print(max(map(lambda x: x**2, [1, 2, 3])))
+
+if __name__ == '__main__':
+    while True:
+        cursor.execute(input())
+        [print(i) for i in cursor.fetchall()]
+        db.commit()
