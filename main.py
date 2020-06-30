@@ -3,7 +3,7 @@ import logging
 from base_skill.skill import CommandHandler, BaseSkill, button
 from .strings import TEXT, WORDS, BUTTON_LIKE, BUTTON_NEXT_TEST, txt, HELP
 from .state import State
-from .test_helper import get_new_test, get_top_test, get_random_test, add_wtf, try_to_find_test
+from .test_helper import get_new_test, get_top_test, get_random_test, add_wtf, try_to_find_test, has_rated, rate_skill
 from .ui_helper import default_buttons, save_res, normalize_tts, get_card, get_image_id, get_random_sound
 
 
@@ -119,6 +119,16 @@ def like(req, res, session):
     normalize_tts(res)
 
 
+@handler.command(words=WORDS['rated'], states=State.PASS_TEST)
+@save_res
+@default_buttons
+def rate(req, res, session):
+    res.text = f"{txt(TEXT['thanks'])}\n{txt(TEXT['end_test'])}"
+    rate_skill(req.user_id)
+    res.buttons = [button(BUTTON_NEXT_TEST)]
+    normalize_tts(res)
+
+
 @handler.command(words=WORDS['exit'], states=State.CHOOSE + (State.PASS_TEST,))
 @save_res
 @default_buttons
@@ -198,7 +208,7 @@ def show_test_base(res, session, test, intro=False, cycled=False):
     if cycled:
         intro_text += txt(TEXT['restarted'])
 
-    res.tts = f'{test}{intro_text}'
+    res.tts = f'{test}.\n{intro_text}'
     res.text = f'{test}'
     session['test'] = test
 
@@ -223,10 +233,19 @@ def start_test(req, res, session):
                f'{txt(TEXT["end_test"])}'
     res.card = get_card(test.name, result,
                         image_id=get_image_id(test.id, test.results.index(result)))
-    if not test.liked(req.user_id):
-        res.buttons = [button(BUTTON_LIKE), button(BUTTON_NEXT_TEST)]
-    else:
-        res.buttons = [button(BUTTON_NEXT_TEST)]
+
+    session['state'] = State.PASS_TEST
+    session['passed'] = session.get('passed', 0) + 1
+
+    btns = []
+    liked, rated = test.liked(req.user_id), has_rated(req.user_id)
+    if not session['passed'] % 3 and not rated:
+        btns.append(button(txt(TEXT['rate']), url='https://dialogs.yandex.ru/store/skills/79dc14f5-veselye-minitesty'))
+    elif not liked:
+        btns.append(button(BUTTON_LIKE))
+    btns.append(button(BUTTON_NEXT_TEST))
+
+    res.buttons = btns
 
 
 class MinitestSkill(BaseSkill):
