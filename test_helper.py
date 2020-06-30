@@ -8,6 +8,7 @@ from random import choice
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 JSON_PATH = os.path.join(BASE_DIR, 'tests.json')
 DB_PATH = os.path.join(BASE_DIR, 'database.db')
+MIN_MATCH = 0.6
 
 db = connect(DB_PATH)
 cursor = db.cursor()
@@ -15,6 +16,10 @@ cursor.execute('create table if not exists likes('
                'id integer primary key autoincrement,'
                'user_id string not null,'
                'test_id integer not null);')
+cursor.execute('create table if not exists rated('
+               'id integer primary key autoincrement,'
+               'user_id string not null'
+               ');')
 db.commit()
 
 
@@ -103,18 +108,26 @@ def get_new(n):
     return tests[-n:][::-1]
 
 
+def has_rated(user_id):
+    return cursor.execute(f"select * from rated where user_id = '{user_id}'").fetchone() is not None
+
+
+def rate_skill(user_id):
+    if has_rated(user_id):
+        return
+    else:
+        cursor.execute('insert into rated (user_id) values(?)', (user_id, ))
+        db.commit()
+
+
 def add_wtf(text):
     with open(os.path.join(BASE_DIR, 'wtf.txt'), 'a', encoding='utf8') as file:
         file.write(text + '\n')
 
 
-def get_diff(text1, text2):
-    return
-
-
 def try_to_find_test(text):
     text = text.lower()
-    mx = 0.5
+    mx = MIN_MATCH
     result = None
     for test in tests:
         mx_diff = max(map(lambda x: sequence(None, text, x).ratio(),
